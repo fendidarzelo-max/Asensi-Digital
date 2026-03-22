@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Miftahul Ulum v5.0</title>
+    <style>
+        /* --- CSS STYLING --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #07bbf2);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container { width: 100%; max-width: 450px; flex-grow: 1; }
+
+        /* Style Logo & Nama di ATAS BORDER */
+        .header-logo {
+            text-align: center;
+            margin-bottom: 25px;
+            color: white;
+        }
+        .header-logo img {
+            width: 100px;
+            height: auto;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            margin-bottom: 15px;
+        }
+        .header-logo h1 {
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            line-height: 1.3;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header-logo p { font-size: 14px; opacity: 0.9; margin-top: 5px; font-style: italic; }
+
+        /* Style Kartu Putih (Border Login/Dashboard) */
+        .card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            animation: fadeIn 0.6s ease;
+            width: 100%;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h3 { text-align: center; color: #1e3c72; margin-bottom: 20px; font-size: 18px; text-transform: uppercase; }
+        input, select, button { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; outline: none; font-size: 15px; }
+        
+        button { 
+            background: #1e3c72; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(30, 60, 114, 0.3);
+        }
+        button:hover { background: #2a5298; transform: translateY(-2px); }
+
+        .hidden { display: none; }
+
+        /* Dashboard Info */
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .info-box { 
+            background: #f0f7ff; padding: 15px; border-radius: 15px; text-align: center;
+            border: 1px solid #d1e3ff;
+        }
+        .info-box span { display: block; font-size: 24px; font-weight: bold; color: #1e3c72; }
+        .info-box label { font-size: 11px; color: #666; font-weight: bold; text-transform: uppercase; }
+
+        .menu-btn { background: #05c027; padding: 18px; font-size: 16px; margin-top: 10px; }
+        
+        /* Daftar Murid */
+        .murid-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: #fdfdfd; padding: 12px; margin-bottom: 8px; 
+            border-radius: 12px; border: 1px solid #eee; 
+        }
+        .murid-row span { font-size: 14px; font-weight: 500; color: #333; }
+        .murid-row select { width: auto; padding: 6px; margin: 0; border-radius: 8px; font-size: 13px; }
+
+        /* Footer DI PALING BAWAH */
+        .footer { 
+            text-align: center; 
+            color: white; 
+            font-size: 13px; 
+            padding: 30px 0 10px 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header-logo" id="mainHeader">
+        <img src="logo.png" alt="Logo Madrasah">
+        <h1>Madrasah Miftahul Ulum <br>An-Nashar</h1>
+        <p>Sistem Absensi Digital</p>
+    </div>
+
+    <div class="card" id="pageLogin">
+        <h3>Masuk Ke Sistem</h3>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">MASUK SEKARANG</button>
+    </div>
+
+    <div class="card hidden" id="pageDashboard">
+        <h3>Menu Utama</h3>
+        <p style="text-align:center; color:#555; margin-bottom: 10px;">Assalamu'alaikum, <b id="userNama">Ustadz</b>!</p>
+        
+        <div class="grid-info">
+            <div class="info-box">
+                <span id="dashTotalMurid">0</span>
+                <label>Total Murid</label>
+            </div>
+            <div class="info-box">
+                <span id="dashTotalKelas">11</span>
+                <label>Total Kelas</label>
+            </div>
+            <div class="info-box" style="grid-column: span 2; background: #e7ffed; border-color: #4ee723;">
+                <span id="dashHadirHariIni">0</span>
+                <label>Siswa Hadir Hari Ini</label>
+            </div>
+        </div>
+
+        <button class="menu-btn" onclick="bukaAbsensi()">MULAI ABSENSI SEKARANG ➜</button>
+        <button style="background:#ff4b2b; margin-top:10px" onclick="resetHitunganHarian()">RESET HITUNGAN HARIAN</button>
+        <button style="background:#666; margin-top:5px" onclick="location.reload()">KELUAR</button>
+    </div>
+
+    <div class="card hidden" id="pageAbsensi">
+        <button onclick="kembaliKeDash()" style="background:none; color:#1e3c72; text-align:left; padding:0; width:auto; margin-bottom:15px; border:none; font-size:14px; box-shadow: none;">⬅ Kembali ke Dashboard</button>
+        <h3>Form Absensi</h3>
+        
+        <select id="pilihKelas" onchange="tampilkanMurid()">
+            <option value="">-- PILIH KELAS --</option>
+            <option value="KELAS I TPA">KELAS I TPA</option>
+            <option value="KELAS II TPA">KELAS II TPA</option>
+            <option value="KELAS III TPA">KELAS III TPA</option>
+            <option value="KELAS I ULA">KELAS I ULA</option>
+            <option value="KELAS II ULA">KELAS II ULA</option>
+            <option value="KELAS III ULA">KELAS III ULA</option>
+            <option value="KELAS IV ULA">KELAS IV ULA</option>
+            <option value="KELAS KHUSUS">KELAS KHUSUS</option>
+            <option value="KELAS I WUSTHO">KELAS I WUSTHO</option>
+            <option value="KELAS II WUSTHO">KELAS II WUSTHO</option>
+            <option value="KELAS III WUSTHO">KELAS III WUSTHO</option>
+        </select>
+
+        <div id="areaDaftarMurid" style="max-height: 350px; overflow-y: auto; margin: 15px 0; border-top: 1px solid #eee; padding-top: 10px;">
+            <p style="text-align:center; color:#999; font-style: italic;">Pilih kelas untuk memuat daftar nama...</p>
+        </div>
+
+        <button id="btnSimpan" onclick="simpanKeCloud()">SIMPAN ABSENSI</button>
+    </div>
+
+</div>
+
+<div class="footer">
+    © 2026 MADRASAH MIFTAHUL ULUM AN-NASHAR <br>
+    <small>Dikembangkan Media Center An-Nashar</small>
+</div>
+
+<script>
+    // --- JAVASCRIPT LOGIC ---
+
+    // GANTI URL DI BAWAH INI DENGAN URL WEB APP KAMU
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwezmxTIvthRCwqyh6z1VPkJSgxVumwMVhe9iae65q3LKxtdKCgJAaaLi_4oBX75O4m/exec";
+
+    // Daftar nama sudah dibersihkan (tanpa spasi/koma di akhir) agar cocok dengan Sheets
+    const DATA_MURID = {
+        "KELAS I TPA": ["Muslim", "Noer Hadi", "Ainur Rofiq", "Noer Kholik", "Nurul hidayah", "Sophal Jamil", "Farhan Jamil", "Intan berlian", "Dikhoyyah", "Khumairoh", "Ana atofunnisa", "Masruroh", "Fatimatuzzahroh", "Eliniawati", "Inayatul Izzah", "Hafizah", "Nor Aini", "Riska Aulia", "Iim permataa sari", "Inasyurrohmah", "Norhayati", "Munatun"],
+        "KELAS II TPA": ["Hasan", "Husain"],
+        "KELAS III TPA": ["Fulan", "Fulanah"],
+        "KELAS I ULA": ["Rafi Ahmad", "Rania Azzahra"],
+        "KELAS II ULA": ["Nabila", "Farhan"],
+        "KELAS III ULA": ["Azka Maulana", "Salma"],
+        "KELAS KHUSUS": ["Ridho Ilahi", "Lina"],
+        "KELAS IV ULA": ["Abdullah", "Aisyah"],
+        "KELAS I WUSTHO": ["Rahmat", "Nur"],
+        "KELAS II WUSTHO": ["Rahmat", "Nur"],
+        "KELAS III WUSTHO": ["Muslim", "Noer Hadi", "Ainur Rofiq", "Noer Kholik", "Nurul hidayah", "Sophal Jamil", "Farhan Jamil", "Intan berlian", "Dikhoyyah", "Khumairoh", "Ana atofunnisa", "Masruroh", "Fatimatuzzahroh", "Eliniawati", "Inayatul Izzah", "Hafizah", "Nor Aini", "Riska Aulia", "Iim permataa sari", "Inasyurrohmah", "Norhayati", "Munatun"],
+    };
+
+    let absensiSekarang = {};
+
+    function login() {
+        const u = document.getElementById("username").value;
+        const p = document.getElementById("password").value;
+        const akun = {"admin":"admin123", "Fendy":"Fendy123", "guru":"guru123"};
+
+        if(akun[u] && akun[u] === p) {
+            document.getElementById("pageLogin").classList.add("hidden");
+            document.getElementById("pageDashboard").classList.remove("hidden");
+            document.getElementById("userNama").innerText = u;
+            hitungDataGlobal();
+        } else {
+            alert("Username atau Password Salah!");
+        }
+    }
+
+    function hitungDataGlobal() {
+        // Hitung Total Murid
+        let totalM = 0;
+        let daftarKelas = Object.keys(DATA_MURID);
+        daftarKelas.forEach(k => totalM += DATA_MURID[k].length);
+        document.getElementById("dashTotalMurid").innerText = totalM;
+
+        // Hitung Hadir Hari Ini (Logika Reset Per Hari)
+        const tglHariIni = new Date().toDateString();
+        let dataSimpanan = JSON.parse(localStorage.getItem('rekap_absensi_v5')) || {tgl: "", total: 0};
+
+        if (dataSimpanan.tgl !== tglHariIni) {
+            // Jika ganti hari, reset otomatis ke 0
+            dataSimpanan = {tgl: tglHariIni, total: 0};
+            localStorage.setItem('rekap_absensi_v5', JSON.stringify(dataSimpanan));
+        }
+        document.getElementById("dashHadirHariIni").innerText = dataSimpanan.total;
+    }
+
+    function resetHitunganHarian() {
+        if(confirm("Apakah Anda yakin ingin mereset angka 'Hadir Hari Ini' ke 0? (Ini tidak menghapus data di Google Sheets)")) {
+            localStorage.setItem('rekap_absensi_v5', JSON.stringify({tgl: new Date().toDateString(), total: 0}));
+            hitungDataGlobal();
+        }
+    }
+
+    function bukaAbsensi() {
+        document.getElementById("pageDashboard").classList.add("hidden");
+        document.getElementById("pageAbsensi").classList.remove("hidden");
+    }
+
+    function kembaliKeDash() {
+        document.getElementById("pageAbsensi").classList.add("hidden");
+        document.getElementById("pageDashboard").classList.remove("hidden");
+        hitungDataGlobal();
+    }
+
+    function tampilkanMurid() {
+        const kls = document.getElementById("pilihKelas").value;
+        const area = document.getElementById("areaDaftarMurid");
+        area.innerHTML = "";
+        absensiSekarang = {};
+
+        if(DATA_MURID[kls]) {
+            DATA_MURID[kls].forEach(nama => {
+                const row = document.createElement("div");
+                row.className = "murid-row";
+                row.innerHTML = `<span>${nama}</span>
+                    <select onchange="absensiSekarang['${nama}'] = this.value">
+                        <option value="H">✅ Hadir</option>
+                        <option value="I">ℹ️ Izin</option>
+                        <option value="A">❌ Alfa</option>
+                    </select>`;
+                area.appendChild(row);
+                absensiSekarang[nama] = "H"; // Default hadir
+            });
+        } else if (kls !== "") {
+            area.innerHTML = "<p style='text-align:center; color:red;'>Data murid belum tersedia untuk kelas ini.</p>";
+        }
+    }
+
+    async function simpanKeCloud() {
+        const kls = document.getElementById("pilihKelas").value;
+        if(!kls) return alert("Pilih kelas dulu!");
+        
+        const btn = document.getElementById("btnSimpan");
+        btn.innerText = "⏳ Mengirim data ke Cloud..."; btn.disabled = true;
+
+        try {
+            await fetch(SCRIPT_URL, {
+                method: "POST", mode: "no-cors",
+                body: JSON.stringify({
+                    tanggal: new Date().toISOString().split('T')[0],
+                    kelas: kls,
+                    data: absensiSekarang
+                })
+            });
+
+            // Update statistik di dashboard
+            let jmlHadir = Object.values(absensiSekarang).filter(v => v === "H").length;
+            let dataLama = JSON.parse(localStorage.getItem('rekap_absensi_v5'));
+            dataLama.total += jmlHadir;
+            localStorage.setItem('rekap_absensi_v5', JSON.stringify(dataLama));
+
+            alert("Alhamdulillah, Data " + kls + " Berhasil Disimpan!");
+            kembaliKeDash();
+        } catch (e) {
+            alert("Gagal mengirim data. Cek koneksi internet!");
+        } finally {
+            btn.innerText = "SIMPAN ABSENSI"; btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
