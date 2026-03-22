@@ -254,16 +254,16 @@
                 const row = document.createElement("div");
                 row.className = "murid-row";
                 row.innerHTML = `<span>${nama}</span>
-                    <select onchange="absensiSekarang['${nama}'] = this.value">
+                    <select onchange="absensiSekarang['${nama}'] = this.value" style="border: 1px solid #ccc; padding: 5px; border-radius: 8px;">
                         <option value="H">✅ Hadir</option>
                         <option value="I">ℹ️ Izin</option>
                         <option value="A">❌ Alfa</option>
                     </select>`;
                 area.appendChild(row);
-                absensiSekarang[nama] = "H"; // Default hadir
+                absensiSekarang[nama] = "H"; // Default awal tetap Hadir
             });
         } else if (kls !== "") {
-            area.innerHTML = "<p style='text-align:center; color:red;'>Data murid belum tersedia untuk kelas ini.</p>";
+            area.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Data murid belum tersedia.</p>";
         }
     }
 
