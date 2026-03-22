@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi Miftahul Ulum v5.0</title>
+    <title>Sistem Absensi Miftahul Ulum v5.5</title>
     <style>
-        /* --- CSS STYLING --- */
+        /* --- CSS STYLING (GLASSMORPHISM PREMIUM) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
         body {
@@ -15,12 +15,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: space-between; /* Menjaga footer tetap di bawah */
             padding: 40px 20px;
         }
 
         .container { width: 100%; max-width: 450px; flex-grow: 1; }
 
-        /* Style Logo & Nama di ATAS BORDER */
+        /* Style Logo & Nama di ATAS BORDER (Di luar kotak putih) */
         .header-logo {
             text-align: center;
             margin-bottom: 25px;
@@ -41,9 +42,9 @@
         }
         .header-logo p { font-size: 14px; opacity: 0.9; margin-top: 5px; font-style: italic; }
 
-        /* Style Kartu Putih (Border Login/Dashboard) */
+        /* Style Kartu Putih (Efek Kaca Transparan) */
         .card {
-            background: rgba(255, 255, 255, 0.96);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 25px;
             padding: 30px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.3);
@@ -82,16 +83,17 @@
             border-radius: 12px; border: 1px solid #eee; 
         }
         .murid-row span { font-size: 14px; font-weight: 500; color: #333; }
-        .murid-row select { width: auto; padding: 6px; margin: 0; border-radius: 8px; font-size: 13px; }
+        .murid-row select { width: auto; padding: 6px; margin: 0; border-radius: 8px; font-size: 13px; cursor: pointer; }
 
         /* Footer DI PALING BAWAH */
         .footer { 
             text-align: center; 
             color: white; 
             font-size: 13px; 
-            padding: 30px 0 10px 0;
+            padding-top: 30px;
             width: 100%;
         }
+        .footer small { opacity: 0.8; font-style: italic; }
     </style>
 </head>
 <body>
@@ -171,22 +173,14 @@
 <script>
     // --- JAVASCRIPT LOGIC ---
 
-    // GANTI URL DI BAWAH INI DENGAN URL WEB APP KAMU
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwezmxTIvthRCwqyh6z1VPkJSgxVumwMVhe9iae65q3LKxtdKCgJAaaLi_4oBX75O4m/exec";
+    // GANTI URL DI BAWAH INI DENGAN URL WEB APP KAMU YANG TERBARU
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVgAfTQLNOrcPCoQvtOaRLYrHw2rmQJRhbCn7MlyOojY4LqItcnO9QcF46b1AO7xjv/exec";
 
-    // Daftar nama sudah dibersihkan (tanpa spasi/koma di akhir) agar cocok dengan Sheets
+    // Daftar nama sudah dibersihkan (tanpa spasi/koma liar) agar cocok dengan Sheets
     const DATA_MURID = {
-        "KELAS I TPA": ["Muslim", "Noer Hadi", "Ainur Rofiq", "Noer Kholik", "Nurul hidayah", "Sophal Jamil", "Farhan Jamil", "Intan berlian", "Dikhoyyah", "Khumairoh", "Ana atofunnisa", "Masruroh", "Fatimatuzzahroh", "Eliniawati", "Inayatul Izzah", "Hafizah", "Nor Aini", "Riska Aulia", "Iim permataa sari", "Inasyurrohmah", "Norhayati", "Munatun"],
-        "KELAS II TPA": ["Hasan", "Husain"],
-        "KELAS III TPA": ["Fulan", "Fulanah"],
-        "KELAS I ULA": ["Rafi Ahmad", "Rania Azzahra"],
-        "KELAS II ULA": ["Nabila", "Farhan"],
-        "KELAS III ULA": ["Azka Maulana", "Salma"],
-        "KELAS KHUSUS": ["Ridho Ilahi", "Lina"],
-        "KELAS IV ULA": ["Abdullah", "Aisyah"],
-        "KELAS I WUSTHO": ["Rahmat", "Nur"],
-        "KELAS II WUSTHO": ["Rahmat", "Nur"],
         "KELAS III WUSTHO": ["Muslim", "Noer Hadi", "Ainur Rofiq", "Noer Kholik", "Nurul hidayah", "Sophal Jamil", "Farhan Jamil", "Intan berlian", "Dikhoyyah", "Khumairoh", "Ana atofunnisa", "Masruroh", "Fatimatuzzahroh", "Eliniawati", "Inayatul Izzah", "Hafizah", "Nor Aini", "Riska Aulia", "Iim permataa sari", "Inasyurrohmah", "Norhayati", "Munatun"],
+        "KELAS I TPA": ["Ahmad Muzaki", "Fendy", "Fatimah"]
+        // Tambahkan kelas lain dengan format yang sama persis
     };
 
     let absensiSekarang = {};
@@ -213,7 +207,7 @@
         daftarKelas.forEach(k => totalM += DATA_MURID[k].length);
         document.getElementById("dashTotalMurid").innerText = totalM;
 
-        // Hitung Hadir Hari Ini (Logika Reset Per Hari)
+        // Hitung Hadir Hari Ini (Logika Anti-Menumpuk/Reset Per Hari)
         const tglHariIni = new Date().toDateString();
         let dataSimpanan = JSON.parse(localStorage.getItem('rekap_absensi_v5')) || {tgl: "", total: 0};
 
@@ -254,16 +248,16 @@
                 const row = document.createElement("div");
                 row.className = "murid-row";
                 row.innerHTML = `<span>${nama}</span>
-                    <select onchange="absensiSekarang['${nama}'] = this.value" style="border: 1px solid #ccc; padding: 5px; border-radius: 8px;">
+                    <select onchange="absensiSekarang['${nama}'] = this.value">
                         <option value="H">✅ Hadir</option>
                         <option value="I">ℹ️ Izin</option>
                         <option value="A">❌ Alfa</option>
                     </select>`;
                 area.appendChild(row);
-                absensiSekarang[nama] = "H"; // Default awal tetap Hadir
+                absensiSekarang[nama] = "H"; // Default hadir
             });
         } else if (kls !== "") {
-            area.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>Data murid belum tersedia.</p>";
+            area.innerHTML = "<p style='text-align:center; color:red; font-size:14px; padding:20px;'>Data murid belum tersedia untuk kelas ini.</p>";
         }
     }
 
@@ -272,7 +266,7 @@
         if(!kls) return alert("Pilih kelas dulu!");
         
         const btn = document.getElementById("btnSimpan");
-        btn.innerText = "⏳ Mengirim data ke Cloud..."; btn.disabled = true;
+        btn.innerText = "⏳ Mengirim data..."; btn.disabled = true;
 
         try {
             await fetch(SCRIPT_URL, {
@@ -284,7 +278,7 @@
                 })
             });
 
-            // Update statistik di dashboard
+            // Update statistik harian di dashboard
             let jmlHadir = Object.values(absensiSekarang).filter(v => v === "H").length;
             let dataLama = JSON.parse(localStorage.getItem('rekap_absensi_v5'));
             dataLama.total += jmlHadir;
